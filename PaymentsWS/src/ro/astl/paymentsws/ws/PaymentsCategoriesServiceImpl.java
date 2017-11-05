@@ -32,13 +32,12 @@ public class PaymentsCategoriesServiceImpl implements PaymentsCategoriesService 
 	@POST
 	@Path("/add")
 	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
 	public Response add(Category category) {
 		String label = category.getLabel();
 		boolean isExecuted = dao.addCategory(label);
 		if(isExecuted) {
-			return Response.status(Response.Status.CREATED).entity(category).build();
+			return Response.status(Response.Status.CREATED).build();
 		}
-		return Response.status(Response.Status.NOT_MODIFIED).entity(category).build();
+		return Response.status(Response.Status.BAD_REQUEST).build();
 	}
 }

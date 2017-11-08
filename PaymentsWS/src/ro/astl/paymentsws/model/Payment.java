@@ -11,6 +11,7 @@ import ro.astl.paymentsws.adapter.LocalDateAdapter;
 public class Payment {
 	
 	private int id;
+	private int userId;
 	private String description;
 	private float amount;
 	private Category category;
@@ -22,6 +23,12 @@ public class Payment {
 	}
 	public void setId(int id) {
 		this.id = id;
+	}
+	public int getUserId() {
+		return userId;
+	}
+	public void setUserId(int userId) {
+		this.userId = userId;
 	}
 	public String getDescription() {
 		return description;

@@ -30,13 +30,14 @@ public class PaymentsDaoImpl implements PaymentsDao {
 	@Override
 	public boolean addPayment(Payment payment) {
 		boolean isExecuted = false;
+		int userId = payment.getUserId();
 		String description = payment.getDescription();
 		String category = payment.getCategory().getLabel();
 		float amount = payment.getAmount();
 		LocalDate date = payment.getDate();
 		
 		try(Connection conn = dataSource.getConnection();
-				PreparedStatement stmnt = prepareStatement("addPayment",conn,description,amount,category,date)){
+				PreparedStatement stmnt = prepareStatement("addPayment",conn,userId,description,amount,category,date)){
 			int affectedRows = stmnt.executeUpdate();
 			if(affectedRows>0) {
 				isExecuted = true;
@@ -55,12 +56,13 @@ public class PaymentsDaoImpl implements PaymentsDao {
 		}else {
 			switch(operation) {
 				case "addPayment":
-					sql = "INSERT INTO wltmngr.payments(description,amount,category,date)VALUES(?,?,?,?)";
+					sql = "INSERT INTO wltmngr.payments(id_user,description,amount,category,date)VALUES(?,?,?,?,?)";
 					stmnt = conn.prepareStatement(sql);
-					stmnt.setString(1, (String) paramsSQL[0]);
-					stmnt.setFloat(2, (float) paramsSQL[1]);
-					stmnt.setString(3, (String) paramsSQL[2]);
-					stmnt.setObject(4, paramsSQL[3]);
+					stmnt.setInt(1, (int) paramsSQL[0]);
+					stmnt.setString(2, (String) paramsSQL[1]);
+					stmnt.setFloat(3, (float) paramsSQL[2]);
+					stmnt.setString(4, (String) paramsSQL[3]);
+					stmnt.setObject(5, paramsSQL[4]);
 					break;
 			}
 			return stmnt;

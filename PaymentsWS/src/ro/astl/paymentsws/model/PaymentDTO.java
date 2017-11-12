@@ -2,28 +2,19 @@ package ro.astl.paymentsws.model;
 
 import java.time.LocalDate;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import ro.astl.paymentsws.adapter.LocalDateAdapter;
 
-@XmlRootElement(name = "Payment")
-public class Payment {
+public class PaymentDTO {
 	
-	private int id;
 	private String author;
 	private String description;
 	private float amount;
-	private Category category;
+	private String category;
 	@XmlJavaTypeAdapter(LocalDateAdapter.class)
 	private LocalDate date;
 	
-	public int getId() {
-		return id;
-	}
-	public void setId(int id) {
-		this.id = id;
-	}
 	public String getAuthor() {
 		return author;
 	}
@@ -42,10 +33,10 @@ public class Payment {
 	public void setAmount(float amount) {
 		this.amount = amount;
 	}
-	public Category getCategory() {
+	public String getCategory() {
 		return category;
 	}
-	public void setCategory(Category category) {
+	public void setCategory(String category) {
 		this.category = category;
 	}
 	public LocalDate getDate() {
@@ -54,6 +45,5 @@ public class Payment {
 	public void setDate(LocalDate date) {
 		this.date = date;
 	}
-	
-	
+
 }

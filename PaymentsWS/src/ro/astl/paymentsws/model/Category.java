@@ -7,6 +7,7 @@ public class Category {
 	
 	private int id;
 	private String label;
+	private String locale;
 	
 	public int getId() {
 		return id;
@@ -19,6 +20,12 @@ public class Category {
 	}
 	public void setLabel(String label) {
 		this.label = label;
+	}
+	public String getLocale() {
+		return locale;
+	}
+	public void setLocale(String locale) {
+		this.locale = locale;
 	}
 	
 	

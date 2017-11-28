@@ -10,4 +10,5 @@ import ro.astl.paymentsws.model.PaymentDTO;
 public interface PaymentsService {
 	public Response addPayment(PaymentDTO payment);
 	public List<Payment> getLastPaymentsByAuthor(String author);
+	public List<Payment> getPaymentsByMonthAndAuthor(int year, int month, String author);
 }

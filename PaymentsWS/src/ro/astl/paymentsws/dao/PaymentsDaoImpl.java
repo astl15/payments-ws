@@ -5,7 +5,9 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -84,6 +86,38 @@ public class PaymentsDaoImpl implements PaymentsDao {
 		return payments;
 	}
 	
+	@Override
+	public List<Payment> getPaymentsByDateAndAuthor(LocalDate date, String author) {
+		List<Payment> payments = new ArrayList<Payment>();
+		String stringDate = date.format(DateTimeFormatter.ISO_DATE);
+		try(Connection conn = dataSource.getConnection();
+				PreparedStatement stmnt = prepareGetPaymentsByDateAndAuthor(conn, stringDate, author);
+				ResultSet rs = stmnt.executeQuery()){
+			while(rs.next()) {
+				Payment tempPayment = new Payment();
+				Category category = new Category();
+				category.setId(rs.getInt("category_id"));
+				category.setLabel(rs.getString("category"));
+				tempPayment.setId(rs.getInt("id"));
+				tempPayment.setDescription(rs.getString("description"));
+				tempPayment.setAmount(rs.getFloat("amount"));
+				tempPayment.setAuthor(rs.getString("author"));
+				tempPayment.setCategory(category);
+				Date dbDate = rs.getDate("date");
+				Calendar calendar = Calendar.getInstance();
+				calendar.setTime(dbDate);
+				int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
+				int month = calendar.get(Calendar.MONTH) + 1;
+				int year = calendar.get(Calendar.YEAR);
+				tempPayment.setDate(LocalDate.of(year, month, dayOfMonth));
+				payments.add(tempPayment);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return payments;
+	}
+	
 	private static PreparedStatement prepareStatement(String operation, Connection conn, Object... paramsSQL) throws SQLException{
 		PreparedStatement stmnt = null;
 		String sql = "";
@@ -108,5 +142,14 @@ public class PaymentsDaoImpl implements PaymentsDao {
 			}
 			return stmnt;
 		}
+	}
+	
+	private static PreparedStatement prepareGetPaymentsByDateAndAuthor(Connection conn, String date, String author) throws SQLException {
+		PreparedStatement stmnt = null;
+		String sql = "SELECT p.id, p.author, p.description, p.amount,c.id AS category_id, p.category, p.date FROM payments p INNER JOIN payment_categories c ON p.category = c.name WHERE p.author=? AND p.date >=?";
+		stmnt = conn.prepareStatement(sql);
+		stmnt.setString(1, author);
+		stmnt.setString(2, date);
+		return stmnt;
 	}
 }

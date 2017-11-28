@@ -17,6 +17,17 @@ public class PaymentsCategoriesDaoImpl implements PaymentsCategoriesDao {
 	private static PaymentsCategoriesDao instance = PaymentsCategoriesDaoImpl
 			.getInstance();
 	
+	public static final PaymentsCategoriesDao getInstance() {
+		if(instance==null) {
+			synchronized (PaymentsCategoriesDaoImpl.class) {
+				if(instance==null) {
+					instance = new PaymentsCategoriesDaoImpl();
+				}
+			}
+		}
+		return instance;
+	}
+	
 	@Override
 	public List<Category> getCategories() {
 		List<Category> categories = new ArrayList<Category>();
@@ -28,6 +39,7 @@ public class PaymentsCategoriesDaoImpl implements PaymentsCategoriesDao {
 						Category tempCategory = new Category();
 						tempCategory.setId(rs.getInt("id"));
 						tempCategory.setLabel(rs.getString("name"));
+						tempCategory.setLocale(rs.getString("locale"));
 						categories.add(tempCategory);
 					}
 				} catch (SQLException e) {
@@ -37,10 +49,10 @@ public class PaymentsCategoriesDaoImpl implements PaymentsCategoriesDao {
 		}
 
 	@Override
-	public boolean addCategory(String label) {
+	public boolean addCategory(String label, String locale) {
 		boolean isExecuted = false;
 		try(Connection conn = dataSource.getConnection();
-			PreparedStatement stmnt = prepareStatement("addCategory",conn,label)){
+			PreparedStatement stmnt = preareAddCategory(conn,label,locale)){
 			int affectedRows = stmnt.executeUpdate();
 			if(affectedRows > 0) {
 				isExecuted = true;
@@ -49,9 +61,9 @@ public class PaymentsCategoriesDaoImpl implements PaymentsCategoriesDao {
 			e.printStackTrace();
 		}
 		return isExecuted;
-		
 	}
 	
+	/**to be replaced */
 	private static PreparedStatement prepareStatement(String operation, Connection conn, String... paramsSQL) throws SQLException{
 		PreparedStatement stmnt = null;
 		String sql = "";
@@ -69,16 +81,12 @@ public class PaymentsCategoriesDaoImpl implements PaymentsCategoriesDao {
 		}
 	}
 	
-	public static final PaymentsCategoriesDao getInstance() {
-		if(instance==null) {
-			synchronized (PaymentsCategoriesDaoImpl.class) {
-				if(instance==null) {
-					instance = new PaymentsCategoriesDaoImpl();
-				}
-			}
-		}
-		return instance;
+	private static PreparedStatement preareAddCategory(Connection conn, String name, String locale) throws SQLException {
+		PreparedStatement stmnt = null;
+		String sql = "INSERT INTO wltmngr.payment_categories(name,locale)VALUES(?,?)";
+		stmnt = conn.prepareStatement(sql);
+		stmnt.setString(1, name);
+		stmnt.setString(2, locale);
+		return stmnt;
 	}
-	
-
 }

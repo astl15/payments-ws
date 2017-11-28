@@ -64,4 +64,16 @@ public class PaymentsServiceImpl implements PaymentsService {
 		return payments;
 	}
 
+	@GET
+	@Path("/{year}/{month}/{author}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Override
+	public List<Payment> getPaymentsByMonthAndAuthor(@PathParam("year")int year, @PathParam("month")int month, @PathParam("author")String author) {
+		List<Payment> payments = new ArrayList<Payment>();
+		int dayOfMonth = 1;
+		LocalDate searchDate = LocalDate.of(year, month, dayOfMonth);
+		payments = dao.getPaymentsByDateAndAuthor(searchDate, author);
+		return payments;
+	}
+
 }

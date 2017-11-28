@@ -34,7 +34,8 @@ public class PaymentsCategoriesServiceImpl implements PaymentsCategoriesService 
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response add(Category category) {
 		String label = category.getLabel();
-		boolean isExecuted = dao.addCategory(label);
+		String locale = category.getLocale();
+		boolean isExecuted = dao.addCategory(label,locale);
 		if(isExecuted) {
 			return Response.status(Response.Status.CREATED).build();
 		}

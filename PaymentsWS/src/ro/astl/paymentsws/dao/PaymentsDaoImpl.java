@@ -15,6 +15,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import ro.astl.paymentsws.model.Category;
+import ro.astl.paymentsws.model.CategoryAmount;
 import ro.astl.paymentsws.model.Payment;
 
 public class PaymentsDaoImpl implements PaymentsDao {
@@ -44,7 +45,7 @@ public class PaymentsDaoImpl implements PaymentsDao {
 		Date date = Date.valueOf(payment.getDate());
 		
 		try(Connection conn = dataSource.getConnection();
-				PreparedStatement stmnt = prepareStatement("addPayment",conn,author,description,amount,category,date)){
+				PreparedStatement stmnt = prepareAddPayment(conn, author, description, amount, category, date)){
 			int affectedRows = stmnt.executeUpdate();
 			if(affectedRows>0) {
 				isExecuted = true;
@@ -59,7 +60,7 @@ public class PaymentsDaoImpl implements PaymentsDao {
 	public List<Payment> getLastPaymentsByAuthor(String author) {
 		List<Payment> payments = new ArrayList<Payment>();
 		try(Connection conn = dataSource.getConnection();
-				PreparedStatement stmnt = prepareStatement("getLastPaymentsByAuthor",conn,author);
+				PreparedStatement stmnt = prepareGetLastPaymentsByAuthor(conn, author);
 				ResultSet rs = stmnt.executeQuery()){
 			while(rs.next()) {
 				Payment tempPayment = new Payment();
@@ -118,7 +119,7 @@ public class PaymentsDaoImpl implements PaymentsDao {
 		return payments;
 	}
 	
-	private static PreparedStatement prepareStatement(String operation, Connection conn, Object... paramsSQL) throws SQLException{
+	/*private static PreparedStatement prepareStatement(String operation, Connection conn, Object... paramsSQL) throws SQLException{
 		PreparedStatement stmnt = null;
 		String sql = "";
 		if(paramsSQL.length<1) {
@@ -135,13 +136,34 @@ public class PaymentsDaoImpl implements PaymentsDao {
 					stmnt.setObject(5, paramsSQL[4]);
 					break;
 				case "getLastPaymentsByAuthor":
-					sql = "SELECT p.id,p.author,p.description,p.amount,c.id AS category_id,p.category,p.date FROM payments p INNER JOIN payment_categories c ON p.category = c.name WHERE p.author = ? ORDER BY p.date,p.id DESC LIMIT 10";
+					sql = "SELECT p.id,p.author,p.description,p.amount,c.id AS category_id,p.category,p.date FROM payments p INNER JOIN payment_categories c ON p.category = c.name WHERE p.author = ? ORDER BY p.date DESC,p.id DESC LIMIT 10";
 					stmnt = conn.prepareStatement(sql);
 					stmnt.setString(1, (String) paramsSQL[0]);
 					break;
 			}
 			return stmnt;
 		}
+	}*/
+	
+	private static PreparedStatement prepareAddPayment(Connection conn, String author, 
+			String description, float amount, String category, Date date) throws SQLException {
+		PreparedStatement stmnt = null;
+		String sql = "INSERT INTO wltmngr.payments(author,description,amount,category,date)VALUES(?,?,?,?,?)";
+		stmnt = conn.prepareStatement(sql);
+		stmnt.setString(1, author);
+		stmnt.setString(2, description);
+		stmnt.setFloat(3, amount);
+		stmnt.setString(4, category);
+		stmnt.setObject(5, date);
+		return stmnt;
+	}
+	
+	private static PreparedStatement prepareGetLastPaymentsByAuthor(Connection conn, String author) throws SQLException {
+		PreparedStatement stmnt = null;
+		String sql = "SELECT p.id,p.author,p.description,p.amount,c.id AS category_id,p.category,p.date FROM payments p INNER JOIN payment_categories c ON p.category = c.name WHERE p.author = ? ORDER BY p.date DESC,p.id DESC LIMIT 10";
+		stmnt = conn.prepareStatement(sql);
+		stmnt.setString(1, author);
+		return stmnt;
 	}
 	
 	private static PreparedStatement prepareGetPaymentsByDateAndAuthor(Connection conn, String date, String author) throws SQLException {

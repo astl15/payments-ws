@@ -18,6 +18,7 @@ import ro.astl.paymentsws.dao.PaymentsCategoriesDaoImpl;
 import ro.astl.paymentsws.dao.PaymentsDao;
 import ro.astl.paymentsws.dao.PaymentsDaoImpl;
 import ro.astl.paymentsws.model.Category;
+import ro.astl.paymentsws.model.CategoryAmount;
 import ro.astl.paymentsws.model.Payment;
 import ro.astl.paymentsws.model.PaymentDTO;
 
@@ -75,5 +76,4 @@ public class PaymentsServiceImpl implements PaymentsService {
 		payments = dao.getPaymentsByDateAndAuthor(searchDate, author);
 		return payments;
 	}
-
 }

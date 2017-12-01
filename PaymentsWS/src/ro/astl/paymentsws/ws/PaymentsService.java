@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
+import ro.astl.paymentsws.model.CategoryAmount;
 import ro.astl.paymentsws.model.Payment;
 import ro.astl.paymentsws.model.PaymentDTO;
 

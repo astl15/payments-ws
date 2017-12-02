@@ -13,6 +13,7 @@ import javax.ws.rs.core.MediaType;
 import ro.astl.paymentsws.dao.PaymentsAmountsDao;
 import ro.astl.paymentsws.dao.PaymentsAmountsDaoImpl;
 import ro.astl.paymentsws.model.CategoryAmount;
+import ro.astl.paymentsws.model.Payment;
 
 @Path("paymentsWS/v1/amounts/")
 public class PaymentsAmountsServiceImpl implements PaymentsAmountsService {
@@ -29,5 +30,17 @@ public class PaymentsAmountsServiceImpl implements PaymentsAmountsService {
 		LocalDate searchDate = LocalDate.of(year, month, dayOfMonth);
 		amountsPerCategories = dao.getAmountByCategory(searchDate, author);
 		return amountsPerCategories;
+	}
+
+	@GET
+	@Path("/date/{year}/{month}/{author}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Override
+	public List<Payment> getAmountPerDate(@PathParam("year")int year, @PathParam("month")int month, @PathParam("author")String author) {
+		List<Payment> amountsPerDay = new ArrayList<Payment>();
+		int dayOfMonth = 1;
+		LocalDate searchDate = LocalDate.of(year, month, dayOfMonth);
+		amountsPerDay = dao.getAmountPerDate(searchDate, author);
+		return amountsPerDay;
 	}
 }

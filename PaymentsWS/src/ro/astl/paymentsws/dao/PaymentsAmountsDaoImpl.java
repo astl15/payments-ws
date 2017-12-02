@@ -1,17 +1,21 @@
 package ro.astl.paymentsws.dao;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import javax.sql.DataSource;
 
+import ro.astl.paymentsws.model.Category;
 import ro.astl.paymentsws.model.CategoryAmount;
+import ro.astl.paymentsws.model.Payment;
 
 public class PaymentsAmountsDaoImpl implements PaymentsAmountsDao{
 	
@@ -49,6 +53,35 @@ public class PaymentsAmountsDaoImpl implements PaymentsAmountsDao{
 		return amountsPerCategory;
 	}
 	
+	@Override
+	public List<Payment> getAmountPerDate(LocalDate date, String author){
+		List<Payment> amountsPerDay = new ArrayList<Payment>();
+		String stringDate = date.format(DateTimeFormatter.ISO_DATE);
+		try(Connection conn = dataSource.getConnection();
+				PreparedStatement stmnt = prepareGetAmountPerDate(conn, stringDate, author);
+				ResultSet rs = stmnt.executeQuery()){
+			while(rs.next()) {
+				Payment payment = new Payment();
+				Category category = new Category();
+				category.setId(rs.getInt("category_id"));
+				category.setLabel(rs.getString("category"));
+				payment.setAuthor(rs.getString("author"));
+				payment.setAmount(rs.getFloat("amount"));
+				Date dbDate = rs.getDate("date");
+				Calendar calendar = Calendar.getInstance();
+				calendar.setTime(dbDate);
+				int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
+				int month = calendar.get(Calendar.MONTH) + 1;
+				int year = calendar.get(Calendar.YEAR);
+				payment.setDate(LocalDate.of(year, month, dayOfMonth));
+				amountsPerDay.add(payment);
+			}	
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return amountsPerDay;
+	}
+	
 	private static PreparedStatement prepareGetAmountByCategory(Connection conn, String date, String author) throws SQLException {
 		PreparedStatement stmnt = null;
 		String sql = "SELECT p.category, SUM(p.amount) AS amount FROM payments p WHERE p.author=? AND p.date >=? GROUP BY p.category";
@@ -57,5 +90,16 @@ public class PaymentsAmountsDaoImpl implements PaymentsAmountsDao{
 		stmnt.setString(2, date);
 		return stmnt;
 	}
+	
+	private static PreparedStatement prepareGetAmountPerDate(Connection conn, String date, String author) throws SQLException {
+		PreparedStatement stmnt = null;
+		String sql = "SELECT p.id, p.author, SUM(p.amount) AS amount, c.id AS category_id, p.category, p.date FROM payments p INNER JOIN payment_categories c on p.category = c.name WHERE p.author=? AND p.date >=?  GROUP BY p.date"; 
+		stmnt = conn.prepareStatement(sql);
+		stmnt.setString(1, author);
+		stmnt.setString(2, date);
+		return stmnt;
+	}
+
+	
 
 }

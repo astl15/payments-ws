@@ -1,5 +1,6 @@
 package ro.astl.paymentsws.dao;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -9,7 +10,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -82,6 +85,24 @@ public class PaymentsAmountsDaoImpl implements PaymentsAmountsDao{
 		return amountsPerDay;
 	}
 	
+	@Override
+	public Map<String, Integer> getMonthlySummary(LocalDate date, String author) {
+		Map<String, Integer> monthlySummary = new HashMap<String, Integer>();
+		String stringDate = date.format(DateTimeFormatter.ISO_DATE);
+		try(Connection conn = dataSource.getConnection();
+				PreparedStatement stmnt = prepareGetMonthlySum(conn, stringDate, author);
+				ResultSet rs = stmnt.executeQuery()){
+			while(rs.next()) {
+				BigDecimal monthlySum = rs.getBigDecimal("amount");
+				int intMonthlySum = monthlySum.intValue();
+				monthlySummary.put("monthlySum", intMonthlySum);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return monthlySummary;
+	}
+	
 	private static PreparedStatement prepareGetAmountByCategory(Connection conn, String date, String author) throws SQLException {
 		PreparedStatement stmnt = null;
 		String sql = "SELECT p.category, SUM(p.amount) AS amount FROM payments p WHERE p.author=? AND p.date >=? GROUP BY p.category";
@@ -99,7 +120,14 @@ public class PaymentsAmountsDaoImpl implements PaymentsAmountsDao{
 		stmnt.setString(2, date);
 		return stmnt;
 	}
-
 	
+	private static PreparedStatement prepareGetMonthlySum(Connection conn, String date, String author) throws SQLException {
+		PreparedStatement stmnt = null;
+		String sql = "SELECT p.author, SUM(p.amount) AS amount FROM payments p WHERE p.author=? AND p.date >=?";
+		stmnt = conn.prepareStatement(sql);
+		stmnt.setString(1, author);
+		stmnt.setString(2, date);
+		return stmnt;
+	}
 
 }

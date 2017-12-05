@@ -90,12 +90,19 @@ public class PaymentsAmountsDaoImpl implements PaymentsAmountsDao{
 		Map<String, Integer> monthlySummary = new HashMap<String, Integer>();
 		String stringDate = date.format(DateTimeFormatter.ISO_DATE);
 		try(Connection conn = dataSource.getConnection();
-				PreparedStatement stmnt = prepareGetMonthlySum(conn, stringDate, author);
-				ResultSet rs = stmnt.executeQuery()){
-			while(rs.next()) {
-				BigDecimal monthlySum = rs.getBigDecimal("amount");
+				PreparedStatement stmntSum = prepareGetMonthlySum(conn, stringDate, author);
+				PreparedStatement stmntAvg = prepareGetMonthlyAverage(conn, stringDate, author);
+				ResultSet rsSum = stmntSum.executeQuery();
+				ResultSet rsAvg = stmntAvg.executeQuery()){
+			while(rsSum.next()) {
+				BigDecimal monthlySum = rsSum.getBigDecimal("amount");
 				int intMonthlySum = monthlySum.intValue();
 				monthlySummary.put("monthlySum", intMonthlySum);
+			}
+			while(rsAvg.next()) {
+				BigDecimal monthlyAvg = rsAvg.getBigDecimal("AVG(sum)");
+				int intMonthlyAvg = monthlyAvg.intValue();
+				monthlySummary.put("monthlyAvg", intMonthlyAvg);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -124,6 +131,15 @@ public class PaymentsAmountsDaoImpl implements PaymentsAmountsDao{
 	private static PreparedStatement prepareGetMonthlySum(Connection conn, String date, String author) throws SQLException {
 		PreparedStatement stmnt = null;
 		String sql = "SELECT p.author, SUM(p.amount) AS amount FROM payments p WHERE p.author=? AND p.date >=?";
+		stmnt = conn.prepareStatement(sql);
+		stmnt.setString(1, author);
+		stmnt.setString(2, date);
+		return stmnt;
+	}
+	
+	private static PreparedStatement prepareGetMonthlyAverage(Connection conn, String date, String author) throws SQLException {
+		PreparedStatement stmnt = null;
+		String sql = "SELECT AVG(sum) FROM (SELECT SUM(p.amount) AS sum FROM payments p WHERE p.author=? AND p.date >=? GROUP BY p.date) AS average";
 		stmnt = conn.prepareStatement(sql);
 		stmnt.setString(1, author);
 		stmnt.setString(2, date);
